@@ -8,9 +8,12 @@ import java.util.stream.Stream;
 /**
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
+@SuppressWarnings("WeakerAccess")
 public class VolleyBall {
     public static void main(String[] args) throws InterruptedException {
+        @SuppressWarnings("unchecked")
         final Agent<Integer>[] players = new Agent[5];
+        @SuppressWarnings("unchecked")
         final Port<Integer>[] playersPorts = new Port[5];
         final int closeValue = Integer.MIN_VALUE;
 
@@ -34,7 +37,7 @@ public class VolleyBall {
                                 }
                             },
                             () -> System.out.printf("Player #%s finished\n", playerNumber),
-                            1);
+                            1, closeValue);
 
                     players[playerIndex] = player;
                     playersPorts[playerIndex] = player.port();

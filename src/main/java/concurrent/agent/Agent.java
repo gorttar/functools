@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 /**
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
+@SuppressWarnings("WeakerAccess")
 public class Agent<T> extends Thread {
     private final Port<T> port;
 
@@ -15,10 +16,10 @@ public class Agent<T> extends Thread {
     private final Consumer<? super T> payload;
     private final Runnable postProcess;
 
-    public Agent(Consumer<? super T> payload, Runnable postProcess, int bufferSize) {
+    public Agent(Consumer<? super T> payload, Runnable postProcess, int bufferSize, T closeValue) {
         this.payload = payload;
         this.postProcess = postProcess;
-        final Pair<Port<T>, Stream<T>> portWithStream = BufferedPort.createPortWithStream(bufferSize);
+        final Pair<Port<T>, Stream<T>> portWithStream = BufferedPort.createPortWithStream(bufferSize, closeValue);
         port = portWithStream.fst();
         stream = portWithStream.snd();
     }

@@ -6,6 +6,7 @@ import java.util.stream.IntStream;
 /**
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
+@SuppressWarnings("WeakerAccess")
 public class Sample {
     public static void main(String[] args) {
         final Agent<Integer> consumer = new Agent<>(
@@ -18,7 +19,7 @@ public class Sample {
                     }
                 },
                 () -> System.out.println("Consumer finished"),
-                10);
+                10, Integer.MIN_VALUE);
 
         final Port<Integer> consumerPort = consumer.port();
 

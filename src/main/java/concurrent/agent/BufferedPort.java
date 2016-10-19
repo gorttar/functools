@@ -3,7 +3,6 @@ package concurrent.agent;
 import static concurrent.agent.Port.Response.CLOSED;
 import static concurrent.agent.Port.Response.FULL;
 import static concurrent.agent.Port.Response.OK;
-import static data.Pair.tup;
 
 import data.Pair;
 
@@ -22,13 +21,16 @@ import java.util.stream.StreamSupport;
 /**
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
+@SuppressWarnings("WeakerAccess")
 public class BufferedPort<T> implements Port<T> {
     private boolean closed = false;
     private final Lock portLock = new ReentrantLock();
+    private final T closeValue;
     private final BlockingQueue<T> queue;
     private final PortItr portItr;
 
-    private BufferedPort(int bufferSize) {
+    private BufferedPort(T closeValue, int bufferSize) {
+        this.closeValue = closeValue;
         queue = new ArrayBlockingQueue<>(bufferSize);
         portItr = new PortItr();
     }
@@ -102,13 +104,19 @@ public class BufferedPort<T> implements Port<T> {
     @Override
     public void close() throws IOException {
         portLock.lock();
-        closed = true;
-        portLock.unlock();
+        try {
+            sendBody(closeValue);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            closed = true;
+            portLock.unlock();
+        }
     }
 
-    public static <T> Pair<Port<T>, Stream<T>> createPortWithStream(int bufferSize) {
-        final BufferedPort<T> port = new BufferedPort<>(bufferSize);
-        return tup(
+    public static <T> Pair<Port<T>, Stream<T>> createPortWithStream(int bufferSize, T closeValue) {
+        final BufferedPort<T> port = new BufferedPort<>(closeValue, bufferSize);
+        return Pair.tup(
                 port,
                 StreamSupport.stream(
                         Spliterators.spliterator(port.portItr, -1, Spliterator.IMMUTABLE),
@@ -119,7 +127,7 @@ public class BufferedPort<T> implements Port<T> {
         private ItrState state = closed
                 ? ItrState.EXCEEDED
                 : ItrState.WAIT_NEXT_VALUE;
-        private Lock itrLock = new ReentrantLock();
+        private final Lock itrLock = new ReentrantLock();
         private T nextValue;
 
         @Override
@@ -129,10 +137,37 @@ public class BufferedPort<T> implements Port<T> {
                 itrLock.lockInterruptibly();
                 result = hasNextBody();
             } catch (InterruptedException e) {
+                queue.clear();
                 state = ItrState.EXCEEDED;
                 Thread.currentThread().interrupt();
             } finally {
                 itrLock.unlock();
+            }
+            return result;
+        }
+
+        private boolean hasNextBody() throws InterruptedException {
+            final boolean result;
+            switch (state) {
+                case EXCEEDED:
+                    result = false;
+                    break;
+                case HAS_NEXT_VALUE:
+                    result = true;
+                    break;
+                case WAIT_NEXT_VALUE:
+                    if (closed && queue.isEmpty()) {
+                        state = ItrState.EXCEEDED;
+                        result = false;
+                    } else {
+                        nextValue = queue.take();
+                        result = !nextValue.equals(closeValue);
+                        state = result ? ItrState.HAS_NEXT_VALUE : ItrState.EXCEEDED;
+                    }
+                    break;
+                default:
+                    state = ItrState.EXCEEDED;
+                    result = false;
             }
             return result;
         }
@@ -155,6 +190,7 @@ public class BufferedPort<T> implements Port<T> {
                         break;
                 }
             } catch (InterruptedException e) {
+                queue.clear();
                 state = ItrState.EXCEEDED;
                 Thread.currentThread().interrupt();
                 throw new NoSuchElementException("Port is closed");
@@ -164,31 +200,6 @@ public class BufferedPort<T> implements Port<T> {
             return nextValue;
         }
 
-        private boolean hasNextBody() throws InterruptedException {
-            final boolean result;
-            switch (state) {
-                case EXCEEDED:
-                    result = false;
-                    break;
-                case HAS_NEXT_VALUE:
-                    result = true;
-                    break;
-                case WAIT_NEXT_VALUE:
-                    if (closed && queue.isEmpty()) {
-                        state = ItrState.EXCEEDED;
-                        result = false;
-                    } else {
-                        nextValue = queue.take();
-                        result = true;
-                        state = ItrState.HAS_NEXT_VALUE;
-                    }
-                    break;
-                default:
-                    state = ItrState.EXCEEDED;
-                    result = false;
-            }
-            return result;
-        }
 
     }
 
