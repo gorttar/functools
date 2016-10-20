@@ -18,7 +18,6 @@ public class VolleyBall {
         final Agent<Integer>[] players = new Agent[5];
         @SuppressWarnings("unchecked")
         final Port<Integer>[] playersPorts = new Port[5];
-        final int closeValue = Integer.MIN_VALUE;
 
         IntStream.range(0, 5).forEach(
                 playerIndex -> {
