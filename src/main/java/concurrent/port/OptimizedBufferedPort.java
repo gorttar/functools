@@ -22,11 +22,13 @@ public class OptimizedBufferedPort<T> implements Port<T> {
     private final static Object CLOSE_VALUE = new Object();
     private boolean closed = false;
     private final Lock portLock = new ReentrantLock();
-    private final BlockingQueue queue;
+    private final BlockingQueue<T> queue;
+    private final BlockingQueue rawQueue;
     final PortItr portItr;
 
     OptimizedBufferedPort(int bufferSize) {
         queue = new ArrayBlockingQueue<>(bufferSize);
+        rawQueue = queue;
         portItr = new PortItr();
     }
 
@@ -71,7 +73,7 @@ public class OptimizedBufferedPort<T> implements Port<T> {
             closed = true;
         }
         //noinspection unchecked
-        queue.put(message);
+        rawQueue.put(message);
     }
 
     @Override
@@ -157,8 +159,7 @@ public class OptimizedBufferedPort<T> implements Port<T> {
                         state = ItrState.EXCEEDED;
                         result = false;
                     } else {
-                        //noinspection unchecked
-                        nextValue = (T) queue.take();
+                        nextValue = queue.take();
                         result = nextValue != CLOSE_VALUE;
                         state = result ? ItrState.HAS_NEXT_VALUE : ItrState.EXCEEDED;
                     }
