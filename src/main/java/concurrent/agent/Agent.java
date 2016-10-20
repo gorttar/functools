@@ -1,6 +1,6 @@
 package concurrent.agent;
 
-import concurrent.port.RawBufferedPort;
+import concurrent.port.OptionalBufferedPort;
 import concurrent.port.Port;
 import data.Pair;
 
@@ -18,10 +18,10 @@ public class Agent<T> extends Thread {
     private final Consumer<? super T> payload;
     private final Runnable postProcess;
 
-    public Agent(Consumer<? super T> payload, Runnable postProcess, int bufferSize, T closeValue) {
+    public Agent(Consumer<? super T> payload, Runnable postProcess, int bufferSize) {
         this.payload = payload;
         this.postProcess = postProcess;
-        final Pair<Port<T>, Stream<T>> portWithStream = RawBufferedPort.createPortWithStream(bufferSize, closeValue);
+        final Pair<Port<T>, Stream<T>> portWithStream = OptionalBufferedPort.createPortWithStream(bufferSize);
         port = portWithStream.fst();
         stream = portWithStream.snd();
     }

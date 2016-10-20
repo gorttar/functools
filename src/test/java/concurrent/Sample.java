@@ -22,7 +22,7 @@ public class Sample {
                     }
                 },
                 () -> System.out.println("Consumer finished"),
-                10, Integer.MIN_VALUE);
+                10);
 
         final Port<Integer> consumerPort = consumer.port();
 

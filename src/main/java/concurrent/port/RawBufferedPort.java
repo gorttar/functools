@@ -5,6 +5,7 @@ import data.Pair;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -23,9 +24,9 @@ public class RawBufferedPort<T> implements Port<T> {
     private final Lock portLock = new ReentrantLock();
     private final T closeValue;
     private final BlockingQueue<T> queue;
-    private final PortItr portItr;
+    final PortItr portItr;
 
-    private RawBufferedPort(T closeValue, int bufferSize) {
+    RawBufferedPort(T closeValue, int bufferSize) {
         this.closeValue = closeValue;
         queue = new ArrayBlockingQueue<>(bufferSize);
         portItr = new PortItr();

@@ -40,7 +40,7 @@ public class VolleyBall {
                                 }
                             },
                             () -> System.out.printf("Player #%s finished\n", playerNumber),
-                            1, closeValue);
+                            1);
 
                     players[playerIndex] = player;
                     playersPorts[playerIndex] = player.port();
