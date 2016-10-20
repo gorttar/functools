@@ -1,8 +1,4 @@
-package concurrent.agent;
-
-import static concurrent.agent.Port.Response.CLOSED;
-import static concurrent.agent.Port.Response.FULL;
-import static concurrent.agent.Port.Response.OK;
+package concurrent.port;
 
 import data.Pair;
 
@@ -22,14 +18,14 @@ import java.util.stream.StreamSupport;
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
 @SuppressWarnings("WeakerAccess")
-public class BufferedPort<T> implements Port<T> {
+public class RawBufferedPort<T> implements Port<T> {
     private boolean closed = false;
     private final Lock portLock = new ReentrantLock();
     private final T closeValue;
     private final BlockingQueue<T> queue;
     private final PortItr portItr;
 
-    private BufferedPort(T closeValue, int bufferSize) {
+    private RawBufferedPort(T closeValue, int bufferSize) {
         this.closeValue = closeValue;
         queue = new ArrayBlockingQueue<>(bufferSize);
         portItr = new PortItr();
@@ -93,9 +89,9 @@ public class BufferedPort<T> implements Port<T> {
         final Response result;
         portLock.lock();
         if (closed) {
-            result = CLOSED;
+            result = Response.CLOSED;
         } else {
-            result = sendImmediate(message) ? OK : FULL;
+            result = sendImmediate(message) ? Response.OK : Response.FULL;
         }
         portLock.unlock();
         return result;
@@ -115,7 +111,7 @@ public class BufferedPort<T> implements Port<T> {
     }
 
     public static <T> Pair<Port<T>, Stream<T>> createPortWithStream(int bufferSize, T closeValue) {
-        final BufferedPort<T> port = new BufferedPort<>(closeValue, bufferSize);
+        final RawBufferedPort<T> port = new RawBufferedPort<>(closeValue, bufferSize);
         return Pair.tup(
                 port,
                 StreamSupport.stream(

@@ -1,5 +1,7 @@
 package concurrent.agent;
 
+import concurrent.port.RawBufferedPort;
+import concurrent.port.Port;
 import data.Pair;
 
 import java.util.function.Consumer;
@@ -19,7 +21,7 @@ public class Agent<T> extends Thread {
     public Agent(Consumer<? super T> payload, Runnable postProcess, int bufferSize, T closeValue) {
         this.payload = payload;
         this.postProcess = postProcess;
-        final Pair<Port<T>, Stream<T>> portWithStream = BufferedPort.createPortWithStream(bufferSize, closeValue);
+        final Pair<Port<T>, Stream<T>> portWithStream = RawBufferedPort.createPortWithStream(bufferSize, closeValue);
         port = portWithStream.fst();
         stream = portWithStream.snd();
     }

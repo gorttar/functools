@@ -1,4 +1,7 @@
-package concurrent.agent;
+package concurrent;
+
+import concurrent.agent.Agent;
+import concurrent.port.Port;
 
 import java.io.IOException;
 import java.util.stream.IntStream;
