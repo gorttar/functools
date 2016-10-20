@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- *
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
 @SuppressWarnings("WeakerAccess")
