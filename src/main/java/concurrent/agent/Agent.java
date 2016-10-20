@@ -1,7 +1,6 @@
 package concurrent.agent;
 
 import concurrent.port.OptimizedBufferedPort;
-import concurrent.port.OptionalBufferedPort;
 import concurrent.port.Port;
 import data.Pair;
 
