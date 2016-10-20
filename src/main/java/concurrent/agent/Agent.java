@@ -10,11 +10,10 @@ import java.util.stream.Stream;
 /**
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
  */
-@SuppressWarnings("WeakerAccess")
 public class Agent<T> extends Thread {
     private final Port<T> port;
 
-    protected final Stream<T> stream;
+    private final Stream<T> stream;
     private final Consumer<? super T> payload;
     private final Runnable postProcess;
 
