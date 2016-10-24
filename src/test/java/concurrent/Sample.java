@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.stream.IntStream;
 
 /**
- * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
+ * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
  */
 @SuppressWarnings("WeakerAccess")
 public class Sample {

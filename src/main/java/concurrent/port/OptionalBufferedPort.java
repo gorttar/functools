@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * @author Andrey Antipov (andrey.antipov@cxense.com) (2016-10-20 18:27)
+ * @author Andrey Antipov (gorttar@gmail.com) (2016-10-20 18:27)
  */
 public class OptionalBufferedPort<T> implements Port<T> {
     private final RawBufferedPort<Optional<T>> delegate;

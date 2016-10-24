@@ -4,7 +4,7 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 
 /**
- * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-15)
+ * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
  */
 public class Pair<F, S> extends SimpleImmutableEntry<F, S> {
 
