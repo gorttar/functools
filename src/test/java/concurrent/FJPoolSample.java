@@ -1,6 +1,6 @@
 package concurrent;
 
-import concurrent.agent.Agent;
+import concurrent.agent.ConsumerAgent;
 import concurrent.port.Port;
 
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
  */
 public class FJPoolSample {
     public static void main(String[] args) {
-        final Agent<Integer> consumer = new Agent<>(
+        final ConsumerAgent<Integer> consumer = new ConsumerAgent<>(
                 x -> {
                     System.out.printf("Consumer receives %s\n", x);
                     try {

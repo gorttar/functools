@@ -10,17 +10,17 @@ import java.util.stream.Stream;
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-24 17:42)
  */
-public class StreamAgent<T> extends Thread implements Actor<T> {
-    private final Port<T> port;
+public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
+    private final Port<A> port;
 
-    private final Stream<T> stream;
-    private final Consumer<? super Stream<T>> payload;
+    private final Stream<A> stream;
+    private final Consumer<? super Stream<A>> payload;
     private final Runnable postProcess;
 
-    public StreamAgent(Consumer<? super Stream<T>> payload, Runnable postProcess, int bufferSize) {
+    public StreamConsumerAgent(Consumer<? super Stream<A>> payload, Runnable postProcess, int bufferSize) {
         this.payload = payload;
         this.postProcess = postProcess;
-        final Pair<Port<T>, Stream<T>> portWithStream = OptimizedBufferedPort.createPortWithStream(bufferSize);
+        final Pair<Port<A>, Stream<A>> portWithStream = OptimizedBufferedPort.createPortWithStream(bufferSize);
         port = portWithStream.fst();
         stream = portWithStream.snd();
     }
@@ -31,7 +31,7 @@ public class StreamAgent<T> extends Thread implements Actor<T> {
         postProcess.run();
     }
 
-    public Port<T> port() {
+    public Port<A> port() {
         return port;
     }
 
