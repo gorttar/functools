@@ -1,16 +1,21 @@
 package concurrent.port;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-19)
  */
 public interface Port<T> extends Closeable {
-    void send(T message) throws InterruptedException, IllegalStateException;
-    boolean sendIfOpen(T message) throws InterruptedException;
-    int remainingCapacity();
-    boolean sendImmediate(T message) throws IllegalStateException;
-    Response sendImmediateIfOpen(T message);
+    void send(@Nonnull T message) throws InterruptedException, IllegalStateException;
 
-    enum Response{OK, CLOSED, FULL}
+    boolean sendIfOpen(@Nonnull T message) throws InterruptedException;
+
+    int remainingCapacity();
+
+    boolean sendImmediate(@Nonnull T message);
+
+    Response sendImmediateIfOpen(@Nonnull T message);
+
+    enum Response {OK, CLOSED, FULL}
 }

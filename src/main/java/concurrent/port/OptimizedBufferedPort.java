@@ -2,6 +2,7 @@ package concurrent.port;
 
 import data.Pair;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -33,22 +34,26 @@ public class OptimizedBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public void send(T message) throws InterruptedException {
+    public void send(@Nonnull T message) throws InterruptedException {
         try {
             portLock.lockInterruptibly();
             sendBody(message);
         } catch (Exception e) {
             // if we are receiving any exception then we should cleanup queue and close port
-            queue.clear();
-            closed = true;
+            purge();
             throw e;
         } finally {
             portLock.unlock();
         }
     }
 
+    private void purge() {
+        queue.clear();
+        closed = true;
+    }
+
     @Override
-    public boolean sendIfOpen(T message) throws InterruptedException {
+    public boolean sendIfOpen(@Nonnull T message) throws InterruptedException {
         try {
             portLock.lockInterruptibly();
             if (!closed) {
@@ -56,8 +61,7 @@ public class OptimizedBufferedPort<T> implements Port<T> {
             }
         } catch (Exception e) {
             // if we are receiving any exception then we should cleanup queue and close port
-            queue.clear();
-            closed = true;
+            purge();
             throw e;
         } finally {
             portLock.unlock();
@@ -65,12 +69,9 @@ public class OptimizedBufferedPort<T> implements Port<T> {
         return !closed;
     }
 
-    private void sendBody(Object message) throws InterruptedException {
+    private void sendBody(@Nonnull Object message) throws InterruptedException {
         if (closed) {
             throw new IllegalStateException("Port is closed");
-        }
-        if (message == null) {
-            closed = true;
         }
         //noinspection unchecked
         rawQueue.put(message);
@@ -82,15 +83,18 @@ public class OptimizedBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public boolean sendImmediate(T message) {
+    public boolean sendImmediate(@Nonnull T message) {
+        if (closed) {
+            throw new IllegalStateException("Port is closed");
+        }
         //noinspection unchecked
-        return queue.add(message);
+        return queue.offer(message);
     }
 
     @Override
-    public Response sendImmediateIfOpen(T message) {
-        final Response result;
+    public Response sendImmediateIfOpen(@Nonnull T message) {
         portLock.lock();
+        final Response result;
         if (closed) {
             result = Response.CLOSED;
         } else {
@@ -104,11 +108,14 @@ public class OptimizedBufferedPort<T> implements Port<T> {
     public void close() throws IOException {
         portLock.lock();
         try {
-            sendBody(CLOSE_VALUE);
+            if (!closed) {
+                closed = true;
+                //noinspection unchecked
+                rawQueue.put(CLOSE_VALUE);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            closed = true;
             portLock.unlock();
         }
     }
@@ -136,7 +143,9 @@ public class OptimizedBufferedPort<T> implements Port<T> {
                 itrLock.lockInterruptibly();
                 result = hasNextBody();
             } catch (InterruptedException e) {
-                queue.clear();
+                portLock.lock();
+                purge();
+                portLock.unlock();
                 state = ItrState.EXCEEDED;
                 Thread.currentThread().interrupt();
             } finally {
