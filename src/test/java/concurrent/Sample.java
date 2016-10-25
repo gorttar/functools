@@ -24,10 +24,10 @@ public class Sample {
                 () -> System.out.println("Consumer finished"),
                 10);
 
-        final Port<Integer> consumerPort = consumer.port();
 
         final Thread producer = new Thread(
                 () -> {
+                    final Port<Integer> consumerPort = consumer.port();
                     IntStream.rangeClosed(1, 20).forEach(
                             x -> {
                                 try {

@@ -12,8 +12,8 @@ import java.util.stream.Stream;
  */
 public class Agent<T> extends Thread implements Actor<T> {
     private final Port<T> port;
-
     private final Stream<T> stream;
+
     private final Consumer<? super T> payload;
     private final Runnable postProcess;
 
