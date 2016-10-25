@@ -18,7 +18,7 @@ public class Sample {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        //
+                        Thread.currentThread().interrupt(); // remove if you don't want to interrupt on demand
                     }
                 },
                 () -> System.out.println("Consumer finished"),
@@ -35,7 +35,7 @@ public class Sample {
                                     consumerPort.send(x);
                                     System.out.printf("Producer sends %s\n", x);
                                 } catch (InterruptedException e) {
-                                    //
+                                    Thread.currentThread().interrupt(); // remove if you don't want to interrupt on demand
                                 }
                             }
                     );

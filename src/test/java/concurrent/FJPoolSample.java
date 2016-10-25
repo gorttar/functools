@@ -19,7 +19,7 @@ public class FJPoolSample {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        //
+                        Thread.currentThread().interrupt(); // remove if you don't want to interrupt on demand
                     }
                 },
                 () -> System.out.println("Consumer finished"),
@@ -27,20 +27,18 @@ public class FJPoolSample {
         );
 
         final Runnable producer = () -> {
-            final Port<Integer> consumerPort = consumer.port();
-            IntStream.rangeClosed(1, 20).forEach(
-                    x -> {
-                        try {
-                            System.out.printf("Producer sending %s\n", x);
-                            consumerPort.send(x);
-                            System.out.printf("Producer sends %s\n", x);
-                        } catch (InterruptedException e) {
-                            //
+            try (final Port<Integer> consumerPort = consumer.port()) {
+                IntStream.rangeClosed(1, 20).forEach(
+                        x -> {
+                            try {
+                                System.out.printf("Producer sending %s\n", x);
+                                consumerPort.send(x);
+                                System.out.printf("Producer sends %s\n", x);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt(); // remove if you don't want to interrupt on demand
+                            }
                         }
-                    }
-            );
-            try {
-                consumerPort.close();
+                );
             } catch (IOException e) {
                 //
             }
