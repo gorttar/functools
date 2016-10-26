@@ -16,6 +16,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
+ * optimized port implementation based on {@link BlockingQueue} without wrapping messages
+ * uses {@link #CLOSE_VALUE} as port close signal
+ *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
  */
 @SuppressWarnings("WeakerAccess")
@@ -37,7 +40,10 @@ public class OptimizedBufferedPort<T> implements Port<T> {
     public void send(@Nonnull T message) throws InterruptedException {
         try {
             portLock.lockInterruptibly();
-            sendBody(message);
+            if (closed) {
+                throw new IllegalStateException("Port is closed");
+            }
+            queue.put(message);
         } catch (Exception e) {
             // if we are receiving any exception then we should cleanup queue and close port
             purge();
@@ -49,15 +55,21 @@ public class OptimizedBufferedPort<T> implements Port<T> {
 
     private void purge() {
         queue.clear();
+        try {
+            //noinspection unchecked
+            rawQueue.put(CLOSE_VALUE);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         closed = true;
     }
 
     @Override
-    public boolean sendIfOpen(@Nonnull T message) throws InterruptedException {
+    public Response sendIfOpen(@Nonnull T message) throws InterruptedException {
         try {
             portLock.lockInterruptibly();
             if (!closed) {
-                sendBody(message);
+                queue.put(message);
             }
         } catch (Exception e) {
             // if we are receiving any exception then we should cleanup queue and close port
@@ -66,15 +78,7 @@ public class OptimizedBufferedPort<T> implements Port<T> {
         } finally {
             portLock.unlock();
         }
-        return !closed;
-    }
-
-    private void sendBody(@Nonnull Object message) throws InterruptedException {
-        if (closed) {
-            throw new IllegalStateException("Port is closed");
-        }
-        //noinspection unchecked
-        rawQueue.put(message);
+        return closed ? Response.CLOSED : Response.OK;
     }
 
     @Override
@@ -83,12 +87,11 @@ public class OptimizedBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public boolean sendImmediate(@Nonnull T message) {
+    public Response sendImmediate(@Nonnull T message) throws IllegalStateException {
         if (closed) {
             throw new IllegalStateException("Port is closed");
         }
-        //noinspection unchecked
-        return queue.offer(message);
+        return queue.offer(message) ? Response.OK : Response.UNABLE_TO_RECEIVE_NOW;
     }
 
     @Override
@@ -98,7 +101,7 @@ public class OptimizedBufferedPort<T> implements Port<T> {
         if (closed) {
             result = Response.CLOSED;
         } else {
-            result = sendImmediate(message) ? Response.OK : Response.FULL;
+            result = sendImmediate(message);
         }
         portLock.unlock();
         return result;

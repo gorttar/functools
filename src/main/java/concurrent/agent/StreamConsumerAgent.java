@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
+ * {@link Thread} based implementation for {@link Actor} which process entire stream of messages
+ *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-24 17:42)
  */
 public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
@@ -25,6 +27,12 @@ public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
     @Nullable
     private final Runnable postProcess;
 
+    /**
+     * @param preProcess            will be executed before messages stream processing
+     * @param messageStreamConsumer is used to process stream of messages
+     * @param postProcess           will be executed after messages stream processing
+     * @param bufferSize            size of agent's port buffer
+     */
     public StreamConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super Stream<A>> messageStreamConsumer, @Nullable Runnable postProcess,
                                int bufferSize) {
         this.preProcess = preProcess;

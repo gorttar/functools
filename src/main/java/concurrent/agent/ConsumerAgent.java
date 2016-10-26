@@ -10,6 +10,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
+ * {@link Thread} based implementation for {@link Actor} which process messages one by one
+ *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
  */
 public class ConsumerAgent<A> extends Thread implements Actor<A> {
@@ -25,6 +27,12 @@ public class ConsumerAgent<A> extends Thread implements Actor<A> {
     @Nullable
     private final Runnable postProcess;
 
+    /**
+     * @param preProcess      will be executed before processing first message
+     * @param messageConsumer is used to process messages
+     * @param postProcess     will be executed after processing all messages
+     * @param bufferSize      size of agent's port buffer
+     */
     public ConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super A> messageConsumer, @Nullable Runnable postProcess, int bufferSize) {
         this.preProcess = preProcess;
         this.messageConsumer = messageConsumer;

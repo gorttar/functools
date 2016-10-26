@@ -17,6 +17,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
+ * port implementation based on {@link BlockingQueue} with wrapping messages to {@link Optional}
+ * and {@link java.util.Optional#empty()} as port close signal
+ *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-20 18:27)
  */
 public class OptionalBufferedPort<T> implements Port<T> {
@@ -49,11 +52,16 @@ public class OptionalBufferedPort<T> implements Port<T> {
 
     private void purge() {
         queue.clear();
+        try {
+            queue.put(Optional.empty());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         closed = true;
     }
 
     @Override
-    public boolean sendIfOpen(@Nonnull T message) throws InterruptedException {
+    public Response sendIfOpen(@Nonnull T message) throws InterruptedException {
         try {
             portLock.lockInterruptibly();
             if (!closed) {
@@ -66,7 +74,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
         } finally {
             portLock.unlock();
         }
-        return !closed;
+        return closed ? Response.CLOSED : Response.OK;
     }
 
     @Override
@@ -75,11 +83,11 @@ public class OptionalBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public boolean sendImmediate(@Nonnull T message) throws IllegalStateException {
+    public Response sendImmediate(@Nonnull T message) throws IllegalStateException {
         if (closed) {
             throw new IllegalStateException("Port is closed");
         }
-        return queue.offer(Optional.of(message));
+        return queue.offer(Optional.of(message)) ? Response.OK : Response.UNABLE_TO_RECEIVE_NOW;
     }
 
     @Override
@@ -89,7 +97,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
         if (closed) {
             result = Response.CLOSED;
         } else {
-            result = sendImmediate(message) ? Response.OK : Response.FULL;
+            result = sendImmediate(message);
         }
         portLock.unlock();
         return result;
