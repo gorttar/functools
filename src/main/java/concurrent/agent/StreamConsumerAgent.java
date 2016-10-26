@@ -4,6 +4,8 @@ import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.Port;
 import data.Pair;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -12,13 +14,21 @@ import java.util.stream.Stream;
  */
 public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
     private final Port<A> port;
-
     private final Stream<A> stream;
-    private final Consumer<? super Stream<A>> payload;
+
+    @Nullable
+    private final Runnable preProcess;
+
+    @Nullable
+    private final Consumer<? super Stream<A>> messageStreamConsumer;
+
+    @Nullable
     private final Runnable postProcess;
 
-    public StreamConsumerAgent(Consumer<? super Stream<A>> payload, Runnable postProcess, int bufferSize) {
-        this.payload = payload;
+    public StreamConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super Stream<A>> messageStreamConsumer, @Nullable Runnable postProcess,
+                               int bufferSize) {
+        this.preProcess = preProcess;
+        this.messageStreamConsumer = messageStreamConsumer;
         this.postProcess = postProcess;
         final Pair<Port<A>, Stream<A>> portWithStream = OptimizedBufferedPort.createPortWithStream(bufferSize);
         port = portWithStream.fst();
@@ -27,8 +37,9 @@ public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
 
     @Override
     public void run() {
-        payload.accept(stream);
-        postProcess.run();
+        Optional.ofNullable(preProcess).ifPresent(Runnable::run);
+        Optional.ofNullable(messageStreamConsumer).ifPresent(consumer -> consumer.accept(stream));
+        Optional.ofNullable(postProcess).ifPresent(Runnable::run);
     }
 
     public Port<A> port() {
