@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 public class FJPoolSample {
     public static void main(String[] args) {
         final ConsumerAgent<Integer> consumer = new ConsumerAgent<>(
+                null,
                 x -> {
                     System.out.printf("Consumer receives %s\n", x);
                     try {
@@ -23,8 +24,7 @@ public class FJPoolSample {
                     }
                 },
                 () -> System.out.println("Consumer finished"),
-                10
-        );
+                10);
 
         final Runnable producer = () -> {
             try (final Port<Integer> consumerPort = consumer.port()) {

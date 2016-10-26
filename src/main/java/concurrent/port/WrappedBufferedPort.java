@@ -6,44 +6,42 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * optimized port implementation based on {@link BlockingQueue} without wrapping messages
- * uses {@link #CLOSE_VALUE} as port close signal
+ * port implementation based on {@link java.util.concurrent.BlockingQueue} with wrapping messages to {@link Wrapper}
+ * and {@link Wrapper#empty()} as port close signal
  *
- * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
+ * @author Andrey Antipov (gorttar@gmail.com) (2016-10-20 18:27)
  */
-@SuppressWarnings("WeakerAccess")
-public class OptimizedBufferedPort<A> implements Port<A> {
-    private final static Object CLOSE_VALUE = new Object();
+public class WrappedBufferedPort<A> implements Port<A> {
     private boolean closed = false;
     private final Lock portLock = new ReentrantLock();
-    private final BlockingQueue<A> queue;
-    private final BlockingQueue rawQueue;
-    final PortItr portItr;
+    private final BlockingQueue<Wrapper<A>> queue;
+    private final PortItr portItr;
 
-    OptimizedBufferedPort(int bufferSize) {
+    private WrappedBufferedPort(int bufferSize) {
         queue = new ArrayBlockingQueue<>(bufferSize);
-        rawQueue = queue;
         portItr = new PortItr();
     }
 
     @Override
-    public void send(@Nonnull A message) throws InterruptedException {
+    public void send(@Nonnull A message) throws InterruptedException, IllegalStateException {
+        portLock.lockInterruptibly();
         try {
-            portLock.lockInterruptibly();
             if (closed) {
                 throw new IllegalStateException("Port is closed");
             }
-            queue.put(message);
+            queue.put(Wrapper.of(message));
         } catch (Exception e) {
             // if we are receiving any exception then we should cleanup queue and close port
             purge();
@@ -56,8 +54,7 @@ public class OptimizedBufferedPort<A> implements Port<A> {
     private void purge() {
         queue.clear();
         try {
-            //noinspection unchecked
-            queue.put((A) CLOSE_VALUE);
+            queue.put(Wrapper.empty());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -69,7 +66,7 @@ public class OptimizedBufferedPort<A> implements Port<A> {
         try {
             portLock.lockInterruptibly();
             if (!closed) {
-                queue.put(message);
+                queue.put(Wrapper.of(message));
             }
         } catch (Exception e) {
             // if we are receiving any exception then we should cleanup queue and close port
@@ -91,7 +88,7 @@ public class OptimizedBufferedPort<A> implements Port<A> {
         if (closed) {
             throw new IllegalStateException("Port is closed");
         }
-        return queue.offer(message) ? Response.OK : Response.UNABLE_TO_RECEIVE_NOW;
+        return queue.offer(Wrapper.of(message)) ? Response.OK : Response.UNABLE_TO_RECEIVE_NOW;
     }
 
     @Override
@@ -113,8 +110,7 @@ public class OptimizedBufferedPort<A> implements Port<A> {
         try {
             if (!closed) {
                 closed = true;
-                //noinspection unchecked
-                rawQueue.put(CLOSE_VALUE);
+                queue.put(Wrapper.empty());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -124,20 +120,32 @@ public class OptimizedBufferedPort<A> implements Port<A> {
     }
 
     public static <T> Pair<Port<T>, Stream<T>> createPortWithStream(int bufferSize) {
-        final OptimizedBufferedPort<T> port = new OptimizedBufferedPort<>(bufferSize);
+        final WrappedBufferedPort<T> port = new WrappedBufferedPort<>(bufferSize);
+        final Iterator<Wrapper<T>> portItr = port.portItr;
         return Pair.tup(
                 port,
                 StreamSupport.stream(
-                        Spliterators.spliterator(port.portItr, -1, Spliterator.IMMUTABLE),
+                        Spliterators.spliterator(new Iterator<T>() {
+                            @Override
+                            public boolean hasNext() {
+                                return portItr.hasNext();
+                            }
+
+                            @Override
+                            public T next() {
+                                return portItr.next().orElseThrow(() -> new NoSuchElementException("No value present"));
+                            }
+                        }, -1, Spliterator.IMMUTABLE),
                         false));
     }
 
-    private class PortItr implements Iterator<A> {
+    private class PortItr implements Iterator<Wrapper<A>> {
         private ItrState state = closed
                 ? ItrState.EXCEEDED
                 : ItrState.WAIT_NEXT_VALUE;
         private final Lock itrLock = new ReentrantLock();
-        private A nextValue;
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+        private Wrapper<A> nextValue;
 
         @Override
         public boolean hasNext() {
@@ -172,7 +180,7 @@ public class OptimizedBufferedPort<A> implements Port<A> {
                         result = false;
                     } else {
                         nextValue = queue.take();
-                        result = nextValue != CLOSE_VALUE;
+                        result = nextValue != Wrapper.empty();
                         state = result ? ItrState.HAS_NEXT_VALUE : ItrState.EXCEEDED;
                     }
                     break;
@@ -184,7 +192,7 @@ public class OptimizedBufferedPort<A> implements Port<A> {
         }
 
         @Override
-        public A next() {
+        public Wrapper<A> next() {
             try {
                 itrLock.lockInterruptibly();
                 switch (state) {
@@ -215,5 +223,56 @@ public class OptimizedBufferedPort<A> implements Port<A> {
     }
 
     private enum ItrState {EXCEEDED, WAIT_NEXT_VALUE, HAS_NEXT_VALUE}
+
+    private static class Wrapper<A> {
+        private final static Wrapper<?> NIL = new Wrapper<Object>() {
+            @Override
+            <X extends Throwable> Object orElseThrow(Supplier<X> exceptionSupplier) throws X {
+                throw exceptionSupplier.get();
+            }
+        };
+
+        private final A value;
+
+        private Wrapper() {
+            this(null);
+        }
+
+        private Wrapper(A value) {
+            this.value = value;
+        }
+
+        static <A> Wrapper<A> of(A value) {
+            return new Wrapper<>(value);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Wrapper<?> wrapper = (Wrapper<?>) o;
+            return Objects.equals(value, wrapper.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
+        }
+
+        static <A> Wrapper<A> empty() {
+            @SuppressWarnings("unchecked")
+            final Wrapper<A> nil = (Wrapper<A>) NIL;
+            return nil;
+        }
+
+        <X extends Throwable> A orElseThrow(Supplier<X> exceptionSupplier) throws X {
+            return value;
+        }
+
+    }
 
 }

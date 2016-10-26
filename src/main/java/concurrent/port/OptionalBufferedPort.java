@@ -22,10 +22,10 @@ import java.util.stream.StreamSupport;
  *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-20 18:27)
  */
-public class OptionalBufferedPort<T> implements Port<T> {
+public class OptionalBufferedPort<A> implements Port<A> {
     private boolean closed = false;
     private final Lock portLock = new ReentrantLock();
-    private final BlockingQueue<Optional<T>> queue;
+    private final BlockingQueue<Optional<A>> queue;
     private final PortItr portItr;
 
     private OptionalBufferedPort(int bufferSize) {
@@ -34,7 +34,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public void send(@Nonnull T message) throws InterruptedException, IllegalStateException {
+    public void send(@Nonnull A message) throws InterruptedException, IllegalStateException {
         portLock.lockInterruptibly();
         try {
             if (closed) {
@@ -61,7 +61,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public Response sendIfOpen(@Nonnull T message) throws InterruptedException {
+    public Response sendIfOpen(@Nonnull A message) throws InterruptedException {
         try {
             portLock.lockInterruptibly();
             if (!closed) {
@@ -83,7 +83,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public Response sendImmediate(@Nonnull T message) throws IllegalStateException {
+    public Response sendImmediate(@Nonnull A message) throws IllegalStateException {
         if (closed) {
             throw new IllegalStateException("Port is closed");
         }
@@ -91,7 +91,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
     }
 
     @Override
-    public Response sendImmediateIfOpen(@Nonnull T message) {
+    public Response sendImmediateIfOpen(@Nonnull A message) {
         portLock.lock();
         final Response result;
         if (closed) {
@@ -138,13 +138,13 @@ public class OptionalBufferedPort<T> implements Port<T> {
                         false));
     }
 
-    private class PortItr implements Iterator<Optional<T>> {
+    private class PortItr implements Iterator<Optional<A>> {
         private ItrState state = closed
                 ? ItrState.EXCEEDED
                 : ItrState.WAIT_NEXT_VALUE;
         private final Lock itrLock = new ReentrantLock();
         @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-        private Optional<T> nextValue;
+        private Optional<A> nextValue;
 
         @Override
         public boolean hasNext() {
@@ -191,7 +191,7 @@ public class OptionalBufferedPort<T> implements Port<T> {
         }
 
         @Override
-        public Optional<T> next() {
+        public Optional<A> next() {
             try {
                 itrLock.lockInterruptibly();
                 switch (state) {

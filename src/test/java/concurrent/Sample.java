@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 public class Sample {
     public static void main(String[] args) {
         final ConsumerAgent<Integer> consumer = new ConsumerAgent<>(
+                null,
                 x -> {
                     System.out.printf("Consumer receives %s\n", x);
                     try {

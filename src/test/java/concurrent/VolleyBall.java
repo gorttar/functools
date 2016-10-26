@@ -1,6 +1,6 @@
 package concurrent;
 
-import concurrent.agent.ThreadAgent;
+import concurrent.agent.ConsumerAgent;
 import concurrent.port.Port;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class VolleyBall {
     public static void main(String[] args) throws InterruptedException {
         @SuppressWarnings("unchecked")
-        final ThreadAgent<Integer>[] players = new ThreadAgent[5];
+        final ConsumerAgent<Integer>[] players = new ConsumerAgent[5];
         @SuppressWarnings("unchecked")
         final Port<Integer>[] playersPorts = new Port[5];
 
@@ -24,14 +24,15 @@ public class VolleyBall {
                     final int playerNumber = playerIndex + 1;
                     final int nextPlayerIndex = playerNumber % 5;
                     final int nextPlayerNumber = nextPlayerIndex + 1;
-                    final ThreadAgent<Integer> player = new ThreadAgent<>(
+                    final ConsumerAgent<Integer> player = new ConsumerAgent<>(
+                            null,
                             x -> {
                                 System.out.printf("Player #%s got ball #%s\n", playerNumber, x);
                                 try {
                                     Thread.sleep(1000);
                                     System.out.printf("Player #%s passes ball #%s to player #%s\n", playerNumber, x,
                                             nextPlayerNumber);
-                                    if (!playersPorts[nextPlayerIndex].sendIfOpen(x)) {
+                                    if (playersPorts[nextPlayerIndex].sendIfOpen(x) == Port.Response.CLOSED) {
                                         System.out.printf("Seems like player %s already gone\n", nextPlayerNumber);
                                     }
                                 } catch (InterruptedException e) {

@@ -1,9 +1,11 @@
 package concurrent.agent;
 
+import concurrent.port.BufferedPortFactory;
 import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.Port;
 import data.Pair;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -32,14 +34,28 @@ public class ConsumerAgent<A> extends Thread implements Actor<A> {
      * @param messageConsumer is used to process messages
      * @param postProcess     will be executed after processing all messages
      * @param bufferSize      size of agent's port buffer
+     * @param portFactory     factory to create agent's port
      */
-    public ConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super A> messageConsumer, @Nullable Runnable postProcess, int bufferSize) {
+    public ConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super A> messageConsumer, @Nullable Runnable postProcess, int bufferSize,
+                         @Nonnull BufferedPortFactory portFactory) {
         this.preProcess = preProcess;
         this.messageConsumer = messageConsumer;
         this.postProcess = postProcess;
-        final Pair<Port<A>, Stream<A>> portWithStream = OptimizedBufferedPort.createPortWithStream(bufferSize);
+        final Pair<Port<A>, Stream<A>> portWithStream = portFactory.createPortWithStream(bufferSize);
         port = portWithStream.fst();
         stream = portWithStream.snd();
+    }
+
+    /**
+     * create agent based on {@link OptimizedBufferedPort} as agent's port
+     *
+     * @param preProcess      will be executed before processing first message
+     * @param messageConsumer is used to process messages
+     * @param postProcess     will be executed after processing all messages
+     * @param bufferSize      size of agent's port buffer
+     */
+    public ConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super A> messageConsumer, @Nullable Runnable postProcess, int bufferSize) {
+        this(preProcess, messageConsumer, postProcess, bufferSize, OptimizedBufferedPort::createPortWithStream);
     }
 
     @Override

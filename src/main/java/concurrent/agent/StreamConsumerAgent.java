@@ -1,9 +1,11 @@
 package concurrent.agent;
 
+import concurrent.port.BufferedPortFactory;
 import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.Port;
 import data.Pair;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -32,15 +34,29 @@ public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
      * @param messageStreamConsumer is used to process stream of messages
      * @param postProcess           will be executed after messages stream processing
      * @param bufferSize            size of agent's port buffer
+     * @param portFactory           factory to create agent's port
      */
     public StreamConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super Stream<A>> messageStreamConsumer, @Nullable Runnable postProcess,
-                               int bufferSize) {
+                               int bufferSize, @Nonnull BufferedPortFactory portFactory) {
         this.preProcess = preProcess;
         this.messageStreamConsumer = messageStreamConsumer;
         this.postProcess = postProcess;
-        final Pair<Port<A>, Stream<A>> portWithStream = OptimizedBufferedPort.createPortWithStream(bufferSize);
+        final Pair<Port<A>, Stream<A>> portWithStream = portFactory.createPortWithStream(bufferSize);
         port = portWithStream.fst();
         stream = portWithStream.snd();
+    }
+
+    /**
+     * create agent based on {@link OptimizedBufferedPort} as agent's port
+     *
+     * @param preProcess            will be executed before messages stream processing
+     * @param messageStreamConsumer is used to process stream of messages
+     * @param postProcess           will be executed after messages stream processing
+     * @param bufferSize            size of agent's port buffer
+     */
+    public StreamConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super Stream<A>> messageStreamConsumer, @Nullable Runnable postProcess,
+                               int bufferSize) {
+        this(preProcess, messageStreamConsumer, postProcess, bufferSize, OptimizedBufferedPort::createPortWithStream);
     }
 
     @Override
