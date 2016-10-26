@@ -1,22 +1,26 @@
 package concurrent;
 
+import static data.Pair.tup;
+
 import concurrent.agent.ConsumerAgent;
 import concurrent.port.BufferedPortFactory;
 import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.OptionalBufferedPort;
 import concurrent.port.Port;
 import concurrent.port.WrappedBufferedPort;
+import data.Pair;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-26 18:28)
  */
 public class Profiling {
-    private static final int NUMBER_OF_SAMPLES = 20;
-    private static final int NUMBER_OF_ITERATIONS = 10000;
+    private static final int NUMBER_OF_SAMPLES = 200;
+    private static final int NUMBER_OF_ITERATIONS = 100000;
     private static final int START = Integer.MIN_VALUE;
     private static final int END = START + NUMBER_OF_ITERATIONS;
 
@@ -70,16 +74,18 @@ public class Profiling {
     @Test
     public void comparePortsTest() {
         final double averageEmptyLoopNanos = measureAverageExecutionTime(Profiling::emptyLoop);
-        System.out.println(averageEmptyLoopNanos);
 
-        final double averageOptimizedNanos = measureAverageExecutionTime(() -> producerConsumer(OptimizedBufferedPort::createPortWithStream));
-        System.out.println(averageOptimizedNanos);
-
-        final double averageOptionalNanos = measureAverageExecutionTime(() -> producerConsumer(OptionalBufferedPort::createPortWithStream));
-        System.out.println(averageOptionalNanos);
-
-        final double averageWrappedNanos = measureAverageExecutionTime(() -> producerConsumer(WrappedBufferedPort::createPortWithStream));
-        System.out.println(averageWrappedNanos);
+        Stream
+                .<Pair<Class<? extends Port>, BufferedPortFactory>>of(
+                        tup(OptimizedBufferedPort.class, OptimizedBufferedPort::createPortWithStream),
+                        tup(OptionalBufferedPort.class, OptionalBufferedPort::createPortWithStream),
+                        tup(WrappedBufferedPort.class, WrappedBufferedPort::createPortWithStream))
+                .map(
+                        pair -> tup(
+                                pair.fst().getSimpleName(),
+                                measureAverageExecutionTime(() -> producerConsumer(pair.snd())) - averageEmptyLoopNanos))
+                .sorted((pair1, pair2) -> pair1.getValue().compareTo(pair2.getValue()))
+                .forEach(pair -> System.out.printf("%30s -> %s\n", pair.fst(), pair.snd()));
     }
 
     private static double measureAverageExecutionTime(Runnable toProfile) {
