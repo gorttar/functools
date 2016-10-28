@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
  */
 public class ConsumerAgent<A> extends Thread implements Actor<A> {
-    private final Port<A> port;
+    private final Port<A> inPort;
     private final Stream<A> stream;
 
     @Nullable
@@ -42,7 +42,7 @@ public class ConsumerAgent<A> extends Thread implements Actor<A> {
         this.messageConsumer = messageConsumer;
         this.postProcess = postProcess;
         final Pair<Port<A>, Stream<A>> portWithStream = portFactory.createPortWithStream(bufferSize);
-        port = portWithStream.fst();
+        inPort = portWithStream.fst();
         stream = portWithStream.snd();
     }
 
@@ -86,6 +86,6 @@ public class ConsumerAgent<A> extends Thread implements Actor<A> {
 
     @Override
     public Port<A> port() {
-        return port;
+        return inPort;
     }
 }
