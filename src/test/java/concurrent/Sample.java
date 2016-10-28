@@ -5,6 +5,7 @@ import concurrent.agent.MapperAgent;
 import concurrent.agent.ProducerAgent;
 
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-15)
@@ -48,9 +49,6 @@ public class Sample {
                         }),
                 () -> System.out.println("Producer finished"));
 
-        mapper.start();
-        producer.start();
-        consumer.start();
-
+        Stream.of(mapper, producer, consumer).forEach(Thread::start);
     }
 }
