@@ -24,7 +24,7 @@ public class Sample {
                     }
                 },
                 () -> System.out.println("Consumer finished"),
-                10);
+                1);
 
         MapperAgent<Integer, String> mapper = new MapperAgent<>(
                 consumer.port(),
