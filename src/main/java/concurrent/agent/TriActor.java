@@ -5,7 +5,7 @@ import concurrent.port.Port;
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-24 17:47)
  */
-public interface TriActor<A, B, C> {
+public interface TriActor<A, B, C> extends Runnable {
     Port<A> leftPort();
 
     Port<B> middlePort();

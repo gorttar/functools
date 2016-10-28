@@ -1,8 +1,8 @@
 package concurrent.agent;
 
 import concurrent.port.BufferedPortFactory;
-import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.Port;
+import concurrent.port.WrappedBufferedPort;
 import data.Pair;
 
 import javax.annotation.Nonnull;
@@ -47,7 +47,7 @@ public class ConsumerAgent<A> extends Thread implements Actor<A> {
     }
 
     /**
-     * create agent based on {@link OptimizedBufferedPort} as agent's port
+     * create agent based on {@link WrappedBufferedPort} as agent's port
      *
      * @param preProcess      will be executed before processing first message
      * @param messageConsumer is used to process messages
@@ -55,7 +55,26 @@ public class ConsumerAgent<A> extends Thread implements Actor<A> {
      * @param bufferSize      size of agent's port buffer
      */
     public ConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super A> messageConsumer, @Nullable Runnable postProcess, int bufferSize) {
-        this(preProcess, messageConsumer, postProcess, bufferSize, OptimizedBufferedPort::createPortWithStream);
+        this(preProcess, messageConsumer, postProcess, bufferSize, WrappedBufferedPort::createPortWithStream);
+    }
+
+    /**
+     * @param messageConsumer is used to process messages
+     * @param bufferSize      size of agent's port buffer
+     * @param portFactory     factory to create agent's port
+     */
+    public ConsumerAgent(@Nullable Consumer<? super A> messageConsumer, int bufferSize, @Nonnull BufferedPortFactory portFactory) {
+        this(null, messageConsumer, null, bufferSize, portFactory);
+    }
+
+    /**
+     * create agent based on {@link WrappedBufferedPort} as agent's port
+     *
+     * @param messageConsumer is used to process messages
+     * @param bufferSize      size of agent's port buffer
+     */
+    public ConsumerAgent(@Nullable Consumer<? super A> messageConsumer, int bufferSize) {
+        this(messageConsumer, bufferSize, WrappedBufferedPort::createPortWithStream);
     }
 
     @Override

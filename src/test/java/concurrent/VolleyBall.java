@@ -25,7 +25,7 @@ public class VolleyBall {
                     final int nextPlayerIndex = playerNumber % 5;
                     final int nextPlayerNumber = nextPlayerIndex + 1;
                     final ConsumerAgent<Integer> player = new ConsumerAgent<>(
-                            null,
+                            () -> System.out.printf("Player #%s started\n", playerNumber),
                             x -> {
                                 System.out.printf("Player #%s got ball #%s\n", playerNumber, x);
                                 try {

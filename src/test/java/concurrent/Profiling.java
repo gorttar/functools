@@ -3,6 +3,7 @@ package concurrent;
 import static data.Pair.tup;
 
 import concurrent.agent.ConsumerAgent;
+import concurrent.agent.ProducerAgent;
 import concurrent.port.BufferedPortFactory;
 import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.OptionalBufferedPort;
@@ -11,7 +12,6 @@ import concurrent.port.WrappedBufferedPort;
 import data.Pair;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -45,25 +45,22 @@ public class Profiling {
     private static void producerConsumer(BufferedPortFactory factory) {
         final ConsumerAgent<Integer> consumer = new ConsumerAgent<>(null, __ -> {
         }, null, 10, factory);
-        final Thread producer = new Thread(
-                () -> {
-                    try (Port<Integer> port = consumer.port()) {
-                        IntStream.rangeClosed(START, END)
-                                .forEach(
-                                        x -> {
-                                            try {
-                                                port.send(x);
-                                            } catch (InterruptedException e) {
-                                                Thread.currentThread().interrupt();
-                                            }
-                                        });
-                    } catch (IOException e) {
-                        //
-                    }
-                }
-        );
+
+        final ProducerAgent<Integer> producer = new ProducerAgent<>(
+                consumer.port(),
+                port -> IntStream.rangeClosed(START, END)
+                        .forEach(
+                                x -> {
+                                    try {
+                                        port.send(x);
+                                    } catch (InterruptedException e) {
+                                        Thread.currentThread().interrupt();
+                                    }
+                                }));
+
         producer.start();
         consumer.start();
+
         try {
             consumer.join();
         } catch (InterruptedException e) {

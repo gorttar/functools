@@ -8,7 +8,7 @@ import concurrent.port.Port;
  *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-24 17:47)
  */
-public interface BiActor<A, B> {
+public interface BiActor<A, B> extends Runnable {
     /**
      * @return bi actor's left port
      */

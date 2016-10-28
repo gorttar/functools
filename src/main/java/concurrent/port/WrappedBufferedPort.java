@@ -144,7 +144,6 @@ public class WrappedBufferedPort<A> implements Port<A> {
                 ? ItrState.EXCEEDED
                 : ItrState.WAIT_NEXT_VALUE;
         private final Lock itrLock = new ReentrantLock();
-        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         private Wrapper<A> nextValue;
 
         @Override

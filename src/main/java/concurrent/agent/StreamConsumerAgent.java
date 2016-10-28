@@ -1,8 +1,8 @@
 package concurrent.agent;
 
 import concurrent.port.BufferedPortFactory;
-import concurrent.port.OptimizedBufferedPort;
 import concurrent.port.Port;
+import concurrent.port.WrappedBufferedPort;
 import data.Pair;
 
 import javax.annotation.Nonnull;
@@ -47,7 +47,7 @@ public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
     }
 
     /**
-     * create agent based on {@link OptimizedBufferedPort} as agent's port
+     * create agent based on {@link concurrent.port.WrappedBufferedPort} as agent's port
      *
      * @param preProcess            will be executed before messages stream processing
      * @param messageStreamConsumer is used to process stream of messages
@@ -56,7 +56,26 @@ public class StreamConsumerAgent<A> extends Thread implements Actor<A> {
      */
     public StreamConsumerAgent(@Nullable Runnable preProcess, @Nullable Consumer<? super Stream<A>> messageStreamConsumer, @Nullable Runnable postProcess,
                                int bufferSize) {
-        this(preProcess, messageStreamConsumer, postProcess, bufferSize, OptimizedBufferedPort::createPortWithStream);
+        this(preProcess, messageStreamConsumer, postProcess, bufferSize, WrappedBufferedPort::createPortWithStream);
+    }
+
+    /**
+     * @param messageStreamConsumer is used to process stream of messages
+     * @param bufferSize            size of agent's port buffer
+     * @param portFactory           factory to create agent's port
+     */
+    public StreamConsumerAgent(@Nullable Consumer<? super Stream<A>> messageStreamConsumer, int bufferSize, @Nonnull BufferedPortFactory portFactory) {
+        this(null, messageStreamConsumer, null, bufferSize, portFactory);
+    }
+
+    /**
+     * create agent based on {@link concurrent.port.WrappedBufferedPort} as agent's port
+     *
+     * @param messageStreamConsumer is used to process stream of messages
+     * @param bufferSize            size of agent's port buffer
+     */
+    public StreamConsumerAgent(@Nullable Consumer<? super Stream<A>> messageStreamConsumer, int bufferSize) {
+        this(messageStreamConsumer, bufferSize, WrappedBufferedPort::createPortWithStream);
     }
 
     @Override

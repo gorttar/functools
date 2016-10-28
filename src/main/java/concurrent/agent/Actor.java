@@ -8,7 +8,7 @@ import concurrent.port.Port;
  *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-24 17:47)
  */
-public interface Actor<A> {
+public interface Actor<A> extends Runnable {
     /**
      * @return actor's port
      */

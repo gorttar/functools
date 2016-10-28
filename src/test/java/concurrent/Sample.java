@@ -1,9 +1,8 @@
 package concurrent;
 
 import concurrent.agent.ConsumerAgent;
-import concurrent.port.Port;
+import concurrent.agent.ProducerAgent;
 
-import java.io.IOException;
 import java.util.stream.IntStream;
 
 /**
@@ -13,7 +12,7 @@ import java.util.stream.IntStream;
 public class Sample {
     public static void main(String[] args) {
         final ConsumerAgent<Integer> consumer = new ConsumerAgent<>(
-                null,
+                () -> System.out.println("Consumer started"),
                 x -> {
                     System.out.printf("Consumer receives %s\n", x);
                     try {
@@ -26,27 +25,20 @@ public class Sample {
                 10);
 
 
-        final Thread producer = new Thread(
-                () -> {
-                    final Port<Integer> consumerPort = consumer.port();
-                    IntStream.rangeClosed(1, 20).forEach(
-                            x -> {
-                                try {
-                                    System.out.printf("Producer sending %s\n", x);
-                                    consumerPort.send(x);
-                                    System.out.printf("Producer sends %s\n", x);
-                                } catch (InterruptedException e) {
-                                    Thread.currentThread().interrupt(); // remove if you don't want to interrupt on demand
-                                }
+        final ProducerAgent<Integer> producer = new ProducerAgent<>(
+                consumer.port(),
+                () -> System.out.println("Producer started"),
+                port -> IntStream.rangeClosed(1, 20).forEach(
+                        x -> {
+                            try {
+                                System.out.printf("Producer sending %s\n", x);
+                                port.send(x);
+                                System.out.printf("Producer sends %s\n", x);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt(); // remove if you don't want to interrupt on demand
                             }
-                    );
-                    try {
-                        consumerPort.close();
-                    } catch (IOException e) {
-                        //
-                    }
-                    System.out.println("Producer finished");
-                });
+                        }),
+                () -> System.out.println("Producer finished"));
 
         producer.start();
         consumer.start();
