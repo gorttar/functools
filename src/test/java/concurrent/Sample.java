@@ -1,6 +1,7 @@
 package concurrent;
 
 import concurrent.agent.ConsumerAgent;
+import concurrent.agent.MapperAgent;
 import concurrent.agent.ProducerAgent;
 
 import java.util.stream.IntStream;
@@ -11,10 +12,10 @@ import java.util.stream.IntStream;
 @SuppressWarnings("WeakerAccess")
 public class Sample {
     public static void main(String[] args) {
-        final ConsumerAgent<Integer> consumer = new ConsumerAgent<>(
+        final ConsumerAgent<String> consumer = new ConsumerAgent<>(
                 () -> System.out.println("Consumer started"),
                 x -> {
-                    System.out.printf("Consumer receives %s\n", x);
+                    System.out.printf("Consumer receives '%s'\n", x);
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -24,9 +25,16 @@ public class Sample {
                 () -> System.out.println("Consumer finished"),
                 10);
 
+        MapperAgent<Integer, String> mapper = new MapperAgent<>(
+                consumer.port(),
+                () -> System.out.println("Mapper started"),
+                x -> x + " processed by mapper",
+                () -> System.out.println("Mapper finished"),
+                1
+        );
 
         final ProducerAgent<Integer> producer = new ProducerAgent<>(
-                consumer.port(),
+                mapper.port(),
                 () -> System.out.println("Producer started"),
                 port -> IntStream.rangeClosed(1, 20).forEach(
                         x -> {
@@ -40,6 +48,7 @@ public class Sample {
                         }),
                 () -> System.out.println("Producer finished"));
 
+        mapper.start();
         producer.start();
         consumer.start();
 
