@@ -1,0 +1,43 @@
+package ${package};
+
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * this file is auto generated with {@link Generator} and should not be edited manually
+ *
+ * @author Andrey Antipov (gorttar@gmail.com) (2016-10-29)
+ */
+public class ${class_name}<${types}> extends
+        ${prev_class}<${prev_types}> {
+    public final ${cur_type} ${cur_name};
+
+    ${class_name}(${constructor_params}) {
+        super(${prev_names});
+        this.${cur_name} = ${cur_name};
+    }
+
+    @Override
+    public String toString() {
+        return "t(" +
+                Stream.of(${names})
+                        .map(v -> v instanceof String ? "\"" + v + "\"" : v.toString())
+                        .collect(Collectors.joining(", ")) +
+                ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return this == o ||
+                (
+                        o instanceof ${class_name} &&
+                                super.equals(o) &&
+                                Objects.equals(${cur_name}, ((${class_name}<${placeholders}>) o).${cur_name}));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), ${cur_name});
+    }
+}
