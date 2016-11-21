@@ -1,0 +1,10 @@
+package data.tuple;
+
+/**
+ * this file is auto generated with {@link Generator} and should not be edited manually
+ *
+ * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-29)
+ */
+public interface Tuple {
+    ${body}
+}
