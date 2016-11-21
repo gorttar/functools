@@ -9,19 +9,19 @@ import java.util.stream.Stream;
  *
  * @author Andrey Antipov (gorttar@gmail.com) (2016-10-29)
  */
-public class T2<A, B> extends
-        T1<A> {
-    public final B b;
+public class T1<A> extends
+        T0 {
+    public final A a;
 
-    T2(A a, B b) {
-        super(a);
-        this.b = b;
+    T1(A a) {
+        super();
+        this.a = a;
     }
 
     @Override
     public String toString() {
         return "t(" +
-                Stream.of(a, b)
+                Stream.of(a)
                         .map(v -> v instanceof String ? "\"" + v + "\"" : v.toString())
                         .collect(Collectors.joining(", ")) +
                 ")";
@@ -31,13 +31,13 @@ public class T2<A, B> extends
     public boolean equals(Object o) {
         return this == o ||
                 (
-                        o instanceof T2 &&
+                        o instanceof T1 &&
                                 super.equals(o) &&
-                                Objects.equals(b, ((T2<?, ?>) o).b));
+                                Objects.equals(a, ((T1<?>) o).a));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), b);
+        return Objects.hash(super.hashCode(), a);
     }
 }
