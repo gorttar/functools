@@ -8,6 +8,11 @@ public interface Co3<A, B, C> extends Fn1<A, Co2<B, C>> {
     void a(A a, B b, C c);
 
     @Override
+    default Co2<B, C> apply(A a) {
+        return a(a);
+    }
+
+    @Override
     default Co2<B, C> a(A a) {
         return (b, c) -> a(a, b, c);
     }

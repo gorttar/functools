@@ -32,7 +32,7 @@ public interface Fn4<A, B, C, D, Rt> extends Fn1<A, Fn3<B, C, D, Rt>> {
     }
 
     @Override
-    default Fn3<B, C, D, Rt> a(A a) {
+    default Fn3<B, C, D, Rt> apply(A a) {
         return (b, c, d) -> a(a, b, c, d);
     }
 }

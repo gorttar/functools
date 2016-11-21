@@ -10,5 +10,11 @@ public class Sample {
         System.out.println(fn1.a(0));
         System.out.println(fn1.a(1));
         System.out.println(fn1.a(2));
+
+        Co4<Integer, Integer, Integer, Integer> co4 = (a, b, c, x) -> System.out.println(fn4.a(a, b, c, x));
+        final Co1<Integer> co1 = co4.a(1).a(-3).a(2);
+        co1.a(0);
+        co1.a(1);
+        co1.a(2);
     }
 }

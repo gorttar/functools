@@ -1,5 +1,8 @@
 package control.functions;
 
+import data.tuple.T0;
+import data.tuple.T1;
+
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -8,11 +11,20 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface Fn1<A, Rt> extends Function<A, Rt> {
-    Rt a(A a);
+    default Rt a(A a) {
+        return apply(a);
+    }
 
-    @Override
-    default Rt apply(A a) {
-        return a(a);
+    default Rt a(T1<? extends A> t) {
+        return a(t.a);
+    }
+
+    default Fn1<A, Rt> a() {
+        return this;
+    }
+
+    default Fn1<A, Rt> a(T0 __) {
+        return a();
     }
 
     default <B> Fn1<B, Rt> c(Function<? super B, ? extends A> before) {

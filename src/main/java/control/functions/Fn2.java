@@ -14,7 +14,7 @@ public interface Fn2<A, B, Rt> extends Fn1<A, Fn1<B, Rt>> {
     }
 
     @Override
-    default Fn1<B, Rt> a(A a) {
+    default Fn1<B, Rt> apply(A a) {
         return b -> a(a, b);
     }
 }

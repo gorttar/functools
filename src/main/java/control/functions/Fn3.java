@@ -23,7 +23,7 @@ public interface Fn3<A, B, C, Rt> extends Fn1<A, Fn2<B, C, Rt>> {
     }
 
     @Override
-    default Fn2<B, C, Rt> a(A a) {
+    default Fn2<B, C, Rt> apply(A a) {
         return (b, c) -> a(a, b, c);
     }
 }
