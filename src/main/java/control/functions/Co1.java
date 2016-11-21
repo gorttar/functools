@@ -1,5 +1,7 @@
 package control.functions;
 
+import data.tuple.T0;
+
 import java.util.function.Consumer;
 
 /**
@@ -11,5 +13,15 @@ public interface Co1<A> extends Consumer<A>, Fn1<A, Void> {
     default Void apply(A a) {
         accept(a);
         return null;
+    }
+
+    @Override
+    default Co1<A> a() {
+        return this;
+    }
+
+    @Override
+    default Co1<A> a(T0 __) {
+        return a();
     }
 }
