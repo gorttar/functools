@@ -6,11 +6,10 @@ import java.util.function.Consumer;
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-18 19:22)
  */
 @FunctionalInterface
-public interface Co<A> extends Consumer<A> {
-    void a(A a);
-
+public interface Co1<A> extends Consumer<A>, Fn1<A, Void> {
     @Override
-    default void accept(A a) {
-        a(a);
+    default Void apply(A a) {
+        accept(a);
+        return null;
     }
 }

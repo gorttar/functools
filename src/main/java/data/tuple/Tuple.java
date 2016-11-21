@@ -6,6 +6,16 @@ package data.tuple;
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-29)
  */
 public interface Tuple {
+    static T0 t() {
+        return T0.T_0;
+    }
+
+    static <A>
+    T1<A>
+    t(A a) {
+        return new T1<>(a);
+    }
+
     static <A, B>
     T2<A, B>
     t(A a, B b) {

@@ -29,9 +29,9 @@ public class Generator {
     private static final int MAX_TUPLE_LENGTH = 26;
 
     public static void main(String[] args) throws IOException {
-        IntStream.rangeClosed(3, MAX_TUPLE_LENGTH)
+        IntStream.rangeClosed(2, MAX_TUPLE_LENGTH)
                 .forEach(Generator::generateTupleSource);
-        generateInterface(2, MAX_TUPLE_LENGTH);
+        generateInterface(1, MAX_TUPLE_LENGTH);
     }
 
     private static void generateInterface(int minTupleLength, int maxTupleLength) {
