@@ -6,5 +6,9 @@ package data.tuple;
  * @author Andrey Antipov (andrey.antipov@maxifier.com) (2016-10-29)
  */
 public interface Tuple {
+    static T0 t() {
+        return T0.T_0;
+    }
+
     ${body}
 }
