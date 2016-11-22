@@ -1,5 +1,10 @@
 package control.functions;
 
+import control.functions.consumers.Co1;
+import control.functions.consumers.Co2;
+import control.functions.consumers.Co3;
+import control.functions.consumers.Co4;
+
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-18 19:13)
  */

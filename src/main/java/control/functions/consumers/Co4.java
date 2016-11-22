@@ -1,19 +1,25 @@
-package control.functions;
+package control.functions.consumers;
 
+import control.functions.Fn3;
 import data.tuple.T0;
 import data.tuple.T1;
 import data.tuple.T2;
+import data.tuple.T4;
 
 /**
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-21 21:50)
  */
 @FunctionalInterface
 public interface Co4<A, B, C, D> extends Fn3<A, B, C, Co1<D>> {
-    void a(A a, B b, C c, D d);
+    void uAccept(A a, B b, C c, D d) throws Throwable;
 
     @Override
-    default Co1<D> a(A a, B b, C c) {
-        return d -> a(a, b, c, d);
+    default Co1<D> uApply(A a, B b, C c) throws Throwable {
+        return d -> uAccept(a, b, c, d);
+    }
+
+    default Void a(A a, B b, C c, D d) {
+        return a(a, b, c).a(d);
     }
 
     @Override
@@ -29,6 +35,10 @@ public interface Co4<A, B, C, D> extends Fn3<A, B, C, Co1<D>> {
     @Override
     default Co4<A, B, C, D> a() {
         return this;
+    }
+
+    default Void a(T4<? extends A, ? extends B, ? extends C, ? extends D> t) {
+        return a(t.a, t.b, t.c, t.d);
     }
 
     @Override

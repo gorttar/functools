@@ -9,7 +9,15 @@ import java.util.function.Supplier;
  */
 @FunctionalInterface
 public interface Sup<Rt> extends Supplier<Rt> {
-    Rt a();
+    Rt uApply() throws Throwable;
+
+    default Rt a() {
+        try {
+            return uApply();
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
 
     default Rt a(T0 __) {
         return a();
@@ -19,4 +27,9 @@ public interface Sup<Rt> extends Supplier<Rt> {
     default Rt get() {
         return a();
     }
+
+    static <Rt> Rt a(Sup<? extends Rt> sup) {
+        return sup.a();
+    }
+
 }

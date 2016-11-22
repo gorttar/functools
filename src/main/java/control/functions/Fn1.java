@@ -11,12 +11,19 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface Fn1<A, Rt> extends Function<A, Rt> {
+    Rt uApply(A a) throws Throwable;
+
     default Rt a(A a) {
-        return apply(a);
+        return Sup.a(() -> uApply(a));
+    }
+
+    @Override
+    default Rt apply(A a) {
+        return a(a);
     }
 
     default Rt a(T1<? extends A> t) {
-        return a(t.a);
+        return apply(t.a);
     }
 
     default Fn1<A, Rt> a() {

@@ -1,5 +1,6 @@
-package control.functions;
+package control.functions.consumers;
 
+import control.functions.Fn1;
 import data.tuple.T0;
 
 /**
@@ -7,11 +8,15 @@ import data.tuple.T0;
  */
 @FunctionalInterface
 public interface Co2<A, B> extends Fn1<A, Co1<B>> {
-    void a(A a, B b);
+    void uAccept(A a, B b) throws Throwable;
+
+    default Void a(A a, B b) {
+        return a(a).a(b);
+    }
 
     @Override
-    default Co1<B> apply(A a) {
-        return b -> a(a, b);
+    default Co1<B> uApply(A a) throws Throwable {
+        return b -> uAccept(a, b);
     }
 
     @Override

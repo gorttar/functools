@@ -1,5 +1,6 @@
-package control.functions;
+package control.functions.consumers;
 
+import control.functions.Fn1;
 import data.tuple.T0;
 
 import java.util.function.Consumer;
@@ -9,9 +10,16 @@ import java.util.function.Consumer;
  */
 @FunctionalInterface
 public interface Co1<A> extends Consumer<A>, Fn1<A, Void> {
+    void uAccept(A a) throws Throwable;
+
     @Override
-    default Void apply(A a) {
-        accept(a);
+    default void accept(A a) {
+        a(a);
+    }
+
+    @Override
+    default Void uApply(A a) throws Throwable {
+        uAccept(a);
         return null;
     }
 
