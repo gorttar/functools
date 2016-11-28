@@ -7,20 +7,20 @@ import data.tuple.T2;
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-18 17:18)
  */
 @FunctionalInterface
-public interface Fn2<A, B, Rt> extends Fn1<A, Fn1<B, Rt>> {
+public interface F2<A, B, Rt> extends F1<A, F1<B, Rt>> {
     Rt uApply(A a, B b) throws Throwable;
 
     @Override
-    default Fn1<B, Rt> uApply(A a) throws Throwable {
+    default F1<B, Rt> uApply(A a) throws Throwable {
         return b -> uApply(a, b);
     }
 
     default Rt a(A a, B b) {
-        return Sup.a(() -> uApply(a, b));
+        return Sr.a(() -> uApply(a, b));
     }
 
     @Override
-    default Fn2<A, B, Rt> a() {
+    default F2<A, B, Rt> a() {
         return this;
     }
 
@@ -29,7 +29,11 @@ public interface Fn2<A, B, Rt> extends Fn1<A, Fn1<B, Rt>> {
     }
 
     @Override
-    default Fn2<A, B, Rt> a(T0 __) {
+    default F2<A, B, Rt> a(T0 __) {
         return a();
+    }
+
+    default F2<B, A, Rt> fp12() {
+        return (b, a) -> uApply(a, b);
     }
 }

@@ -8,25 +8,25 @@ import data.tuple.T3;
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-18 19:02)
  */
 @FunctionalInterface
-public interface Fn3<A, B, C, Rt> extends Fn2<A, B, Fn1<C, Rt>> {
+public interface F3<A, B, C, Rt> extends F2<A, B, F1<C, Rt>> {
     Rt uApply(A a, B b, C c) throws Throwable;
 
     @Override
-    default Fn1<C, Rt> uApply(A a, B b) throws Throwable {
+    default F1<C, Rt> uApply(A a, B b) throws Throwable {
         return c -> uApply(a, b, c);
     }
 
     default Rt a(A a, B b, C c) {
-        return Sup.a(() -> uApply(a, b, c));
+        return Sr.a(() -> uApply(a, b, c));
     }
 
     @Override
-    default Fn2<B, C, Rt> a(A a) {
+    default F2<B, C, Rt> a(A a) {
         return (b, c) -> a(a, b, c);
     }
 
     @Override
-    default Fn3<A, B, C, Rt> a() {
+    default F3<A, B, C, Rt> a() {
         return this;
     }
 
@@ -35,12 +35,26 @@ public interface Fn3<A, B, C, Rt> extends Fn2<A, B, Fn1<C, Rt>> {
     }
 
     @Override
-    default Fn2<B, C, Rt> a(T1<? extends A> t) {
+    default F2<B, C, Rt> a(T1<? extends A> t) {
         return a(t.a);
     }
 
     @Override
-    default Fn3<A, B, C, Rt> a(T0 __) {
+    default F3<A, B, C, Rt> a(T0 __) {
         return a();
     }
+
+    @Override
+    default F3<B, A, C, Rt> fp12() {
+        return (b, a, c) -> uApply(a, b, c);
+    }
+
+    default F3<C, B, A, Rt> fp13() {
+        return (c, b, a) -> uApply(a, b, c);
+    }
+
+    default F3<A, C, B, Rt> fp23() {
+        return (a, c, b) -> uApply(a, b, c);
+    }
+
 }

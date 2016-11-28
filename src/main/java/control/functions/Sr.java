@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-18 19:30)
  */
 @FunctionalInterface
-public interface Sup<Rt> extends Supplier<Rt> {
+public interface Sr<Rt> extends Supplier<Rt> {
     Rt uApply() throws Throwable;
 
     default Rt a() {
@@ -28,8 +28,8 @@ public interface Sup<Rt> extends Supplier<Rt> {
         return a();
     }
 
-    static <Rt> Rt a(Sup<? extends Rt> sup) {
-        return sup.a();
+    static <Rt> Rt a(Sr<? extends Rt> sr) {
+        return sr.a();
     }
 
 }

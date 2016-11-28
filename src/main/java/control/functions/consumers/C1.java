@@ -1,6 +1,6 @@
 package control.functions.consumers;
 
-import control.functions.Fn1;
+import control.functions.F1;
 import data.tuple.T0;
 
 import java.util.function.Consumer;
@@ -9,7 +9,7 @@ import java.util.function.Consumer;
  * @author Andrey Antipov (gorttar@gmail.com) (2016-11-18 19:22)
  */
 @FunctionalInterface
-public interface Co1<A> extends Consumer<A>, Fn1<A, Void> {
+public interface C1<A> extends Consumer<A>, F1<A, Void> {
     void uAccept(A a) throws Throwable;
 
     @Override
@@ -24,12 +24,12 @@ public interface Co1<A> extends Consumer<A>, Fn1<A, Void> {
     }
 
     @Override
-    default Co1<A> a() {
+    default C1<A> a() {
         return this;
     }
 
     @Override
-    default Co1<A> a(T0 __) {
+    default C1<A> a(T0 __) {
         return a();
     }
 }
